@@ -87,6 +87,10 @@ public class MainActivity extends AppCompatActivity {
         binding.btnMetadataEditor.setOnClickListener(v -> startEditorActivity(1));
         binding.btnHexEditor.setOnClickListener(v -> startEditorActivity(2));
         binding.btnYuvDecoder.setOnClickListener(v -> startDecoderActivity());
+        binding.btnYuvPlayer.setOnClickListener(v -> {
+            Intent intent = new Intent(this, YuvPlayerActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void displayFileInfo() {

@@ -1,4 +1,5 @@
 #include <jni.h>
+#include <android/bitmap.h>
 #include <string>
 #include <vector>
 #include <utility>
@@ -155,4 +156,108 @@ Java_com_luongtd14_videoanalysis_MediaBridge_patchPayload(
     env->ReleaseByteArrayElements(payload, bytes, JNI_ABORT);
     close(fd);
     return (written == len) ? JNI_TRUE : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_luongtd14_videoanalysis_MediaBridge_convertYUVFrame(
+        JNIEnv* env,
+        jclass /* clazz */,
+        jstring filePathStr,
+        jint frameIndex,
+        jint width,
+        jint height,
+        jstring formatStr,
+        jobject bitmap) {
+        
+    const char* filePath = env->GetStringUTFChars(filePathStr, nullptr);
+    std::string path(filePath);
+    env->ReleaseStringUTFChars(filePathStr, filePath);
+
+    const char* format = env->GetStringUTFChars(formatStr, nullptr);
+    std::string fmt(format);
+    env->ReleaseStringUTFChars(formatStr, format);
+
+    AndroidBitmapInfo info;
+    void* pixels = nullptr;
+    if (AndroidBitmap_getInfo(env, bitmap, &info) < 0) {
+        return JNI_FALSE;
+    }
+    if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
+        return JNI_FALSE;
+    }
+    if (AndroidBitmap_lockPixels(env, bitmap, &pixels) < 0) {
+        return JNI_FALSE;
+    }
+
+    FILE* f = fopen(path.c_str(), "rb");
+    if (!f) {
+        AndroidBitmap_unlockPixels(env, bitmap);
+        return JNI_FALSE;
+    }
+
+    size_t frameSize = width * height * 3 / 2;
+    fseek(f, (long)frameIndex * frameSize, SEEK_SET);
+
+    std::vector<uint8_t> yuvBuffer(frameSize);
+    size_t readBytes = fread(yuvBuffer.data(), 1, frameSize, f);
+    fclose(f);
+
+    if (readBytes < frameSize) {
+        AndroidBitmap_unlockPixels(env, bitmap);
+        return JNI_FALSE;
+    }
+
+    uint8_t* yPlane = yuvBuffer.data();
+    uint8_t* uPlane = nullptr;
+    uint8_t* vPlane = nullptr;
+
+    if (fmt == "I420") {
+        uPlane = yPlane + (width * height);
+        vPlane = uPlane + (width * height / 4);
+    } else if (fmt == "NV12" || fmt == "NV21") {
+        uPlane = yPlane + (width * height);
+    }
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int Y = yPlane[y * width + x];
+            int U, V;
+            
+            int uvX = x / 2;
+            int uvY = y / 2;
+            int uvWidth = width / 2;
+            
+            if (fmt == "I420") {
+                U = uPlane[uvY * uvWidth + uvX];
+                V = vPlane[uvY * uvWidth + uvX];
+            } else if (fmt == "NV12") {
+                U = uPlane[uvY * width + uvX * 2];
+                V = uPlane[uvY * width + uvX * 2 + 1];
+            } else {
+                V = uPlane[uvY * width + uvX * 2];
+                U = uPlane[uvY * width + uvX * 2 + 1];
+            }
+            
+            int c = Y - 16;
+            int d = U - 128;
+            int e = V - 128;
+            
+            int r = (298 * c           + 409 * e + 128) >> 8;
+            int g = (298 * c - 100 * d - 208 * e + 128) >> 8;
+            int b = (298 * c + 516 * d           + 128) >> 8;
+            
+            r = r < 0 ? 0 : (r > 255 ? 255 : r);
+            g = g < 0 ? 0 : (g > 255 ? 255 : g);
+            b = b < 0 ? 0 : (b > 255 ? 255 : b);
+            
+            uint8_t* pixel = ((uint8_t*)pixels) + y * info.stride + x * 4;
+            pixel[0] = r;
+            pixel[1] = g;
+            pixel[2] = b;
+            pixel[3] = 255;
+        }
+    }
+
+    AndroidBitmap_unlockPixels(env, bitmap);
+    return JNI_TRUE;
 }

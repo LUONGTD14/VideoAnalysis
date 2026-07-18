@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#1E1E2E"
+    tools:context=".YuvPlayerActivity">
+
+    <!-- Config Panel -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_config"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/tv_player_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Trình phát YUV thô (YUV Player)"
+                    android:textColor="#1E66F5"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:layout_centerVertical="true" />
+
+                <Button
+                    android:id="@+id/btn_select_yuv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chọn YUV"
+                    android:textSize="12sp"
+                    android:backgroundTint="#8839EF"
+                    android:textColor="#FFFFFF"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <!-- Video configurations input row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <EditText
+                    android:id="@+id/et_yuv_width"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Chiều rộng (W)"
+                    android:inputType="number"
+                    android:text="1280"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" x "
+                    android:textColor="#1E1E2E" />
+
+                <EditText
+                    android:id="@+id/et_yuv_height"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Chiều cao (H)"
+                    android:inputType="number"
+                    android:text="720"
+                    android:textSize="13sp" />
+
+                <Spinner
+                    android:id="@+id/sp_yuv_format"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_load_yuv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📂 Nạp &amp; Khởi chạy YUV"
+                android:backgroundTint="#40A02B"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:padding="8dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Player rendering area -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#000000"
+        android:gravity="center">
+
+        <SurfaceView
+            android:id="@+id/sv_yuv_render"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </RelativeLayout>
+
+    <!-- Controller Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#2E303E">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tv_frame_index"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Khung hình: 0 / 0"
+                android:textColor="#CDD6F4"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_fps_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="30 FPS"
+                android:textColor="#CDD6F4"
+                android:textSize="14sp"
+                android:layout_alignParentEnd="true" />
+        </RelativeLayout>
+
+        <SeekBar
+            android:id="@+id/sb_yuv_timeline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="0"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Control buttons row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btn_yuv_prev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="◀"
+                android:backgroundTint="#45475A"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="12dp" />
+
+            <Button
+                android:id="@+id/btn_yuv_play_pause"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:text="▶ Phát"
+                android:backgroundTint="#1E66F5"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="12dp" />
+
+            <Button
+                android:id="@+id/btn_yuv_next"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="▶"
+                android:backgroundTint="#45475A"
+                android:textColor="#FFFFFF" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
