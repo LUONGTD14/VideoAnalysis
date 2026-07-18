@@ -31,6 +31,9 @@
         <activity
             android:name=".WebmEditorActivity"
             android:exported="false" />
+        <activity
+            android:name=".DecoderActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

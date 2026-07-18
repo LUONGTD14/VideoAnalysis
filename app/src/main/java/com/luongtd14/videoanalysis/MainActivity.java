@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         binding.btnTreeView.setOnClickListener(v -> startEditorActivity(0));
         binding.btnMetadataEditor.setOnClickListener(v -> startEditorActivity(1));
         binding.btnHexEditor.setOnClickListener(v -> startEditorActivity(2));
+        binding.btnYuvDecoder.setOnClickListener(v -> startDecoderActivity());
     }
 
     private void displayFileInfo() {
@@ -138,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
             binding.btnTreeView.setEnabled(true);
             binding.btnMetadataEditor.setEnabled(true);
             binding.btnHexEditor.setEnabled(true);
+            binding.btnYuvDecoder.setEnabled(true);
             
             Toast.makeText(this, "Đã phân tích cấu trúc nhị phân thành công!", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
@@ -196,5 +198,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void startDecoderActivity() {
+        if (selectedFilePath.isEmpty()) return;
+        Intent intent = new Intent(this, DecoderActivity.class);
+        intent.putExtra("file_path", selectedFilePath);
+        intent.putExtra("file_name", selectedFileName);
+        startActivity(intent);
     }
 }
