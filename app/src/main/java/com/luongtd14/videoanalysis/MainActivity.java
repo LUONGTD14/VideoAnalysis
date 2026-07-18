@@ -101,6 +101,16 @@ public class MainActivity extends AppCompatActivity {
             }
             startActivity(intent);
         });
+        binding.btnAv1Encoder.setOnClickListener(v -> {
+            Intent intent = new Intent(this, Av1EncoderActivity.class);
+            if (selectedFileUri != null) {
+                String path = PathUtils.getPathFromUri(this, selectedFileUri);
+                if (path != null && path.endsWith(".yuv")) {
+                    intent.putExtra("file_path", path);
+                }
+            }
+            startActivity(intent);
+        });
     }
 
     private void displayFileInfo() {

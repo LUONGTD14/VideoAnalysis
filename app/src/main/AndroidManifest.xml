@@ -40,6 +40,9 @@
         <activity
             android:name=".EncoderActivity"
             android:exported="false" />
+        <activity
+            android:name=".Av1EncoderActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

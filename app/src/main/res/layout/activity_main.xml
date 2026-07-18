@@ -160,6 +160,16 @@
                 android:layout_marginBottom="12dp" />
 
             <Button
+                android:id="@+id/btn_av1_encoder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📥 Mã hóa YUV sang AV1/VP9"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="#1E1E2E"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <Button
                 android:id="@+id/btn_yuv_player"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
