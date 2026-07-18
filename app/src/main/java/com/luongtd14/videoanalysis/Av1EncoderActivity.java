@@ -115,7 +115,7 @@ public class Av1EncoderActivity extends AppCompatActivity {
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("video/*");
-            intent.putExtra(Intent.EXTRA_TITLE, "output." + (codecType.equals("VP9") ? "vp9" : "obu"));
+            intent.putExtra(Intent.EXTRA_TITLE, "output." + (codecType.equals("VP9") ? "ivf" : "obu"));
             destinationPickerLauncher.launch(intent);
         });
 
@@ -141,7 +141,7 @@ public class Av1EncoderActivity extends AppCompatActivity {
         inputAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.spInputYuvFormat.setAdapter(inputAdapter);
 
-        // Codecs (AV1 & VP9 placeholder)
+        // Codecs
         List<String> codecs = new ArrayList<>();
         codecs.add("AV1 (AOMedia Video 1)");
         codecs.add("VP9 (Google Video 9)");
@@ -170,7 +170,8 @@ public class Av1EncoderActivity extends AppCompatActivity {
             outputFormats.add("Low Overhead OBU Stream");
             outputFormats.add("AV1 Annex B (LEB128 Size Prefixed)");
         } else {
-            outputFormats.add("Raw Frame Packets (IVF / WebM format)");
+            outputFormats.add("IVF Container (DKIF Header)");
+            outputFormats.add("Raw Frame Packets");
         }
         ArrayAdapter<String> outputAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, outputFormats);
@@ -184,11 +185,6 @@ public class Av1EncoderActivity extends AppCompatActivity {
     }
 
     private void startEncoding() {
-        if (codecType.equals("VP9")) {
-            Toast.makeText(this, "VP9 sẽ được hỗ trợ tiếp theo! Vui lòng chọn AV1 để bắt đầu.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         try {
             width = Integer.parseInt(binding.etEncodeWidth.getText().toString().trim());
             height = Integer.parseInt(binding.etEncodeHeight.getText().toString().trim());
@@ -210,7 +206,12 @@ public class Av1EncoderActivity extends AppCompatActivity {
         }
 
         inputYuvFormat = binding.spInputYuvFormat.getSelectedItem().toString();
-        outputBitstreamFormat = binding.spOutputBitstreamFormat.getSelectedItemPosition() == 0 ? "OBU Stream" : "AV1 Annex B";
+        
+        if (codecType.equals("AV1")) {
+            outputBitstreamFormat = binding.spOutputBitstreamFormat.getSelectedItemPosition() == 0 ? "OBU Stream" : "AV1 Annex B";
+        } else {
+            outputBitstreamFormat = binding.spOutputBitstreamFormat.getSelectedItemPosition() == 0 ? "IVF Container" : "Raw Packets";
+        }
 
         isEncoding = true;
         binding.btnToggleEncode.setText("⏹ Hủy Mã Hóa");
@@ -265,8 +266,39 @@ public class Av1EncoderActivity extends AppCompatActivity {
             inStream = new BufferedInputStream(new FileInputStream(sourceFile));
             outStream = new FileOutputStream(outputBitstreamPath);
 
-            String mimeType = MediaFormat.MIMETYPE_VIDEO_AV1; // "video/av01"
+            String mimeType = codecType.equals("VP9") ? MediaFormat.MIMETYPE_VIDEO_VP9 : MediaFormat.MIMETYPE_VIDEO_AV1;
 
+            // 1. Write IVF Header if encoding VP9 to IVF Container
+            if (codecType.equals("VP9") && outputBitstreamFormat.equals("IVF Container")) {
+                byte[] fileHeader = new byte[32];
+                fileHeader[0] = 'D'; fileHeader[1] = 'K'; fileHeader[2] = 'I'; fileHeader[3] = 'F';
+                fileHeader[4] = 0; fileHeader[5] = 0; // version 0
+                fileHeader[6] = 32; fileHeader[7] = 0; // length of header (32)
+                fileHeader[8] = 'V'; fileHeader[9] = 'P'; fileHeader[10] = '9'; fileHeader[11] = '0'; // fourcc 'VP90'
+
+                // Width (16-bit little endian)
+                fileHeader[12] = (byte) (width & 0xFF);
+                fileHeader[13] = (byte) ((width >> 8) & 0xFF);
+                // Height (16-bit little endian)
+                fileHeader[14] = (byte) (height & 0xFF);
+                fileHeader[15] = (byte) ((height >> 8) & 0xFF);
+
+                // Time rate (fps) (32-bit little endian)
+                fileHeader[16] = (byte) (fps & 0xFF);
+                fileHeader[17] = (byte) ((fps >> 8) & 0xFF);
+                fileHeader[18] = (byte) ((fps >> 16) & 0xFF);
+                fileHeader[19] = (byte) ((fps >> 24) & 0xFF);
+
+                // Time scale (1) (32-bit little endian)
+                fileHeader[20] = 1; fileHeader[21] = 0; fileHeader[22] = 0; fileHeader[23] = 0;
+
+                // Total frames (write 0 for now, will patch at end of encoding)
+                fileHeader[24] = 0; fileHeader[25] = 0; fileHeader[26] = 0; fileHeader[27] = 0;
+
+                outStream.write(fileHeader);
+            }
+
+            // 2. Configure and start MediaCodec encoder
             MediaFormat format = MediaFormat.createVideoFormat(mimeType, width, height);
             format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar); // NV12
             format.setInteger(MediaFormat.KEY_BIT_RATE, bitrateBps);
@@ -287,7 +319,7 @@ public class Av1EncoderActivity extends AppCompatActivity {
             MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
             while (isEncoding && (!inputEos || !outputEos)) {
-                // 1. Feed input buffer
+                // Feed input buffer
                 if (!inputEos) {
                     int inputBufferId = encoder.dequeueInputBuffer(10000);
                     if (inputBufferId >= 0) {
@@ -310,7 +342,7 @@ public class Av1EncoderActivity extends AppCompatActivity {
                                 final int finalFrameIdx = frameIndex;
                                 final int progress = (int) ((finalFrameIdx * 100) / totalFrames);
                                 runOnUiThread(() -> {
-                                    binding.tvEncodeProgressLabel.setText("Đang mã hóa AV1: Khung hình " + finalFrameIdx + " / " + totalFrames);
+                                    binding.tvEncodeProgressLabel.setText("Đang mã hóa " + codecType + ": Khung hình " + finalFrameIdx + " / " + totalFrames);
                                     binding.tvEncodeProgressPercent.setText(progress + "%");
                                     binding.pbEncode.setProgress(progress);
                                 });
@@ -319,7 +351,7 @@ public class Av1EncoderActivity extends AppCompatActivity {
                     }
                 }
 
-                // 2. Fetch output buffer
+                // Fetch output buffer
                 int outputBufferId = encoder.dequeueOutputBuffer(info, 10000);
                 if (outputBufferId >= 0) {
                     ByteBuffer outputBuffer = encoder.getOutputBuffer(outputBufferId);
@@ -329,16 +361,54 @@ public class Av1EncoderActivity extends AppCompatActivity {
                         }
 
                         if (info.size > 0) {
-                            byte[] bytes = new byte[info.size];
-                            outputBuffer.position(info.offset);
-                            outputBuffer.get(bytes);
+                            if (codecType.equals("AV1")) {
+                                byte[] bytes = new byte[info.size];
+                                outputBuffer.position(info.offset);
+                                outputBuffer.get(bytes);
 
-                            if (outputBitstreamFormat.equals("OBU Stream")) {
-                                outStream.write(bytes);
+                                if (outputBitstreamFormat.equals("OBU Stream")) {
+                                    outStream.write(bytes);
+                                } else {
+                                    // AV1 Annex B (LEB128 Size Prefixed)
+                                    writeLeb128(info.size, outStream);
+                                    outStream.write(bytes);
+                                }
                             } else {
-                                // Write as AV1 Annex B (Pre-fixed with LEB128 size!)
-                                writeLeb128(info.size, outStream);
-                                outStream.write(bytes);
+                                // VP9 Bitstream Packing
+                                if (outputBitstreamFormat.equals("Raw Packets")) {
+                                    byte[] bytes = new byte[info.size];
+                                    outputBuffer.position(info.offset);
+                                    outputBuffer.get(bytes);
+                                    outStream.write(bytes);
+                                } else {
+                                    // IVF Container (12-byte Frame Header + Frame payload)
+                                    byte[] frameHeader = new byte[12];
+                                    int payloadSize = info.size;
+
+                                    // Size (32-bit little endian)
+                                    frameHeader[0] = (byte) (payloadSize & 0xFF);
+                                    frameHeader[1] = (byte) ((payloadSize >> 8) & 0xFF);
+                                    frameHeader[2] = (byte) ((payloadSize >> 16) & 0xFF);
+                                    frameHeader[3] = (byte) ((payloadSize >> 24) & 0xFF);
+
+                                    // Timestamp (64-bit little-endian presentationTimeUs)
+                                    long pts = info.presentationTimeUs;
+                                    frameHeader[4] = (byte) (pts & 0xFF);
+                                    frameHeader[5] = (byte) ((pts >> 8) & 0xFF);
+                                    frameHeader[6] = (byte) ((pts >> 16) & 0xFF);
+                                    frameHeader[7] = (byte) ((pts >> 24) & 0xFF);
+                                    frameHeader[8] = (byte) ((pts >> 32) & 0xFF);
+                                    frameHeader[9] = (byte) ((pts >> 40) & 0xFF);
+                                    frameHeader[10] = (byte) ((pts >> 48) & 0xFF);
+                                    frameHeader[11] = (byte) ((pts >> 56) & 0xFF);
+
+                                    outStream.write(frameHeader);
+
+                                    byte[] bytes = new byte[payloadSize];
+                                    outputBuffer.position(info.offset);
+                                    outputBuffer.get(bytes);
+                                    outStream.write(bytes);
+                                }
                             }
                         }
                     }
@@ -346,8 +416,29 @@ public class Av1EncoderActivity extends AppCompatActivity {
                 }
             }
 
+            // Close files before patching
+            inStream.close();
+            inStream = null;
+            outStream.flush();
+            outStream.close();
+            outStream = null;
+
+            // 3. Patch IVF total frames for VP9 IVF Container
+            if (codecType.equals("VP9") && outputBitstreamFormat.equals("IVF Container")) {
+                try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(outputBitstreamPath, "rw")) {
+                    raf.seek(24);
+                    byte[] totalFramesBytes = new byte[4];
+                    totalFramesBytes[0] = (byte) (frameIndex & 0xFF);
+                    totalFramesBytes[1] = (byte) ((frameIndex >> 8) & 0xFF);
+                    totalFramesBytes[2] = (byte) ((frameIndex >> 16) & 0xFF);
+                    totalFramesBytes[3] = (byte) ((frameIndex >> 24) & 0xFF);
+                    raf.write(totalFramesBytes);
+                } catch (Exception ignored) {}
+            }
+
+            final int finalEncodedFrames = frameIndex;
             runOnUiThread(() -> {
-                Toast.makeText(this, "Mã hóa AV1 hoàn tất thành công!", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Mã hóa " + codecType + " hoàn tất thành công! Tổng số khung: " + finalEncodedFrames, Toast.LENGTH_LONG).show();
                 isEncoding = false;
                 binding.btnToggleEncode.setText("🎬 Bắt Đầu Mã Hóa");
                 binding.btnSelectEncodeDestination.setEnabled(true);
@@ -359,7 +450,7 @@ public class Av1EncoderActivity extends AppCompatActivity {
         } catch (Exception e) {
             final String errMsg = e.getMessage();
             runOnUiThread(() -> {
-                Toast.makeText(this, "Lỗi mã hóa AV1: " + errMsg, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Lỗi mã hóa " + codecType + ": " + errMsg, Toast.LENGTH_LONG).show();
                 isEncoding = false;
                 binding.btnToggleEncode.setText("🎬 Bắt Đầu Mã Hóa");
                 binding.btnSelectEncodeDestination.setEnabled(true);
@@ -418,7 +509,6 @@ public class Av1EncoderActivity extends AppCompatActivity {
         }
     }
 
-    // Encodes an integer as a LEB128 variable length integer (used by AV1 bitstream packaging)
     private void writeLeb128(int value, OutputStream out) throws IOException {
         while (true) {
             int byteVal = value & 0x7F;
