@@ -35,14 +35,30 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="THÔNG TIN BẢN GHI VIDEO"
-                android:textColor="#8839EF"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="10dp" />
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="THÔNG TIN BẢN GHI VIDEO"
+                    android:textColor="#8839EF"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_centerVertical="true" />
+
+                <Button
+                    android:id="@+id/btn_select_source"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chọn Video"
+                    android:textSize="11sp"
+                    android:backgroundTint="#8839EF"
+                    android:textColor="#FFFFFF"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/tv_video_path"
@@ -87,6 +103,41 @@
                 android:text="Thời lượng: N/A"
                 android:textColor="#1E1E2E"
                 android:textSize="14sp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Input Bitstream format card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_input_bitstream_format"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:visibility="gone"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="3dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ĐỊNH DẠNG BITSTREAM ĐẦU VÀO"
+                android:textColor="#FE640B"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <Spinner
+                android:id="@+id/sp_input_bitstream_format"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:padding="8dp" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

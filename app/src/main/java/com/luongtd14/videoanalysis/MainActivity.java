@@ -78,7 +78,10 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
-            String[] mimeTypes = {"video/mp4", "video/quicktime", "video/x-matroska", "video/webm"};
+            String[] mimeTypes = {
+                "video/mp4", "video/quicktime", "video/x-matroska", "video/webm",
+                "video/h264", "video/hevc", "video/x-h264", "application/octet-stream"
+            };
             intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
             filePickerLauncher.launch(intent);
         });
@@ -139,6 +142,19 @@ public class MainActivity extends AppCompatActivity {
     private void parseSelectedFile() {
         if (selectedFilePath.isEmpty()) return;
         
+        if (selectedFilePath.endsWith(".264") || selectedFilePath.endsWith(".h264") ||
+                selectedFilePath.endsWith(".265") || selectedFilePath.endsWith(".h265")) {
+            detectedFormat = "Raw Video Bitstream (" + (selectedFilePath.endsWith(".265") || selectedFilePath.endsWith(".h265") ? "H.265" : "H.264") + ")";
+            binding.fileTypeLbl.setText("Định dạng: " + detectedFormat);
+            binding.titleLbl.setText("Aura Media Box Viewer");
+
+            binding.btnTreeView.setEnabled(false);
+            binding.btnMetadataEditor.setEnabled(false);
+            binding.btnHexEditor.setEnabled(false);
+            binding.btnYuvDecoder.setEnabled(true);
+            return;
+        }
+
         binding.titleLbl.setText("Đang phân tích...");
         
         try {
@@ -225,10 +241,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startDecoderActivity() {
-        if (selectedFilePath.isEmpty()) return;
         Intent intent = new Intent(this, DecoderActivity.class);
-        intent.putExtra("file_path", selectedFilePath);
-        intent.putExtra("file_name", selectedFileName);
+        if (selectedFilePath != null && !selectedFilePath.isEmpty()) {
+            intent.putExtra("file_path", selectedFilePath);
+            intent.putExtra("file_name", selectedFileName);
+        }
         startActivity(intent);
     }
 }
