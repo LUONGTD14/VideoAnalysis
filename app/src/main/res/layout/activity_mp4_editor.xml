@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F4F5F6">
+
+    <!-- Top Action bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:padding="12dp"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:id="@+id/editor_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MP4 / MOV Box Inspector"
+            android:textColor="#1E66F5"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_centerVertical="true" />
+
+        <Button
+            android:id="@+id/btn_save_as"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lưu thành tệp mới"
+            android:backgroundTint="#40A02B"
+            android:textColor="#FFFFFF"
+            android:layout_alignParentEnd="true" />
+    </RelativeLayout>
+
+    <!-- Content Split layout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_box_tree"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="#FFFFFF"
+            android:padding="8dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#9CA0B0" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.2"
+            android:background="#FFFFFF"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/inspect_box_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Chưa chọn Box"
+                    android:textColor="#1E1E2E"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:id="@+id/inspect_box_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nhấp chọn một phần tử phía trên để xem và sửa đổi thông số."
+                    android:textColor="#4C4F69"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="16dp" />
+
+                <LinearLayout
+                    android:id="@+id/fields_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <LinearLayout
+                    android:id="@+id/hex_editor_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginTop="10dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Dữ liệu nhị phân Hex Payload:"
+                            android:textStyle="bold"
+                            android:textColor="#1E1E2E"
+                            android:layout_centerVertical="true" />
+
+                        <Button
+                            android:id="@+id/btn_apply_hex"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Áp dụng Hex"
+                            android:textSize="12sp"
+                            android:backgroundTint="#8839EF"
+                            android:textColor="#FFFFFF"
+                            android:layout_alignParentEnd="true" />
+                    </RelativeLayout>
+
+                    <EditText
+                        android:id="@+id/et_hex_payload"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:background="#E4E5E6"
+                        android:textColor="#1E1E2E"
+                        android:gravity="top|start"
+                        android:padding="8dp"
+                        android:fontFamily="monospace"
+                        android:textSize="13sp"
+                        android:inputType="textMultiLine"
+                        android:scrollbars="vertical" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_edit_payload_hex"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="✏️ Sửa Hex Payload"
+                    android:backgroundTint="#E4E5E6"
+                    android:textColor="#1E1E2E"
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+
+</LinearLayout>

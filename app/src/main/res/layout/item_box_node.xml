@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- Indentation spacer -->
+    <View
+        android:id="@+id/indent_spacer"
+        android:layout_width="0dp"
+        android:layout_height="match_parent" />
+
+    <!-- Toggle arrow for container boxes -->
+    <ImageView
+        android:id="@+id/iv_expand_icon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginEnd="6dp"
+        android:src="@android:drawable/arrow_down_float"
+        android:visibility="invisible" />
+
+    <!-- Box name / type label -->
+    <TextView
+        android:id="@+id/tv_box_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="moov"
+        android:textColor="#1E1E2E"
+        android:textSize="14sp" />
+
+    <!-- Box size label -->
+    <TextView
+        android:id="@+id/tv_box_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1,024 B"
+        android:textColor="#4C4F69"
+        android:textSize="13sp"
+        android:layout_marginEnd="8dp" />
+
+</LinearLayout>
