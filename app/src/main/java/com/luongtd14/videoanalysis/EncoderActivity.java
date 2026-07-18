@@ -11,6 +11,7 @@ import android.media.MediaFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
@@ -35,6 +36,7 @@ public class EncoderActivity extends AppCompatActivity {
     private int width = 1280;
     private int height = 720;
     private String inputYuvFormat = "I420";
+    private String codecType = "AVC"; // "AVC" or "HEVC"
     private String outputBitstreamFormat = "Annex B";
 
     private volatile boolean isEncoding = false;
@@ -115,8 +117,8 @@ public class EncoderActivity extends AppCompatActivity {
         binding.btnSelectEncodeDestination.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("video/h264");
-            intent.putExtra(Intent.EXTRA_TITLE, "output.h264");
+            intent.setType("video/*");
+            intent.putExtra(Intent.EXTRA_TITLE, "output." + (codecType.equals("HEVC") ? "265" : "264"));
             destinationPickerLauncher.launch(intent);
         });
 
@@ -132,7 +134,7 @@ public class EncoderActivity extends AppCompatActivity {
     }
 
     private void setupSpinners() {
-        // Input color format
+        // Input YUV Color Format
         List<String> inputFormats = new ArrayList<>();
         inputFormats.add("I420");
         inputFormats.add("NV12");
@@ -142,10 +144,38 @@ public class EncoderActivity extends AppCompatActivity {
         inputAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.spInputYuvFormat.setAdapter(inputAdapter);
 
-        // Output bitstream format
+        // Codec Type
+        List<String> codecs = new ArrayList<>();
+        codecs.add("AVC (H.264)");
+        codecs.add("HEVC (H.265)");
+        ArrayAdapter<String> codecAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, codecs);
+        codecAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.spCodecType.setAdapter(codecAdapter);
+
+        binding.spCodecType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                codecType = (position == 0) ? "AVC" : "HEVC";
+                updateOutputFormatSpinner();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        updateOutputFormatSpinner();
+    }
+
+    private void updateOutputFormatSpinner() {
         List<String> outputFormats = new ArrayList<>();
-        outputFormats.add("Annex B (Start Codes)");
-        outputFormats.add("AVCC (Length-Prefixed)");
+        if (codecType.equals("AVC")) {
+            outputFormats.add("Annex B (Start Codes)");
+            outputFormats.add("AVCC (Length-Prefixed)");
+        } else {
+            outputFormats.add("Annex B (Start Codes)");
+            outputFormats.add("HVCC (Length-Prefixed)");
+        }
         ArrayAdapter<String> outputAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, outputFormats);
         outputAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -179,12 +209,13 @@ public class EncoderActivity extends AppCompatActivity {
         }
 
         inputYuvFormat = binding.spInputYuvFormat.getSelectedItem().toString();
-        outputBitstreamFormat = binding.spOutputBitstreamFormat.getSelectedItemPosition() == 0 ? "Annex B" : "AVCC";
+        outputBitstreamFormat = binding.spOutputBitstreamFormat.getSelectedItemPosition() == 0 ? "Annex B" : "AVCC/HVCC";
 
         isEncoding = true;
         binding.btnToggleEncode.setText("⏹ Hủy Mã Hóa");
         binding.btnSelectEncodeDestination.setEnabled(false);
         binding.tvYuvSourceName.setEnabled(false);
+        binding.spCodecType.setEnabled(false);
         binding.cvEncodeProgress.setVisibility(View.VISIBLE);
         binding.pbEncode.setProgress(0);
 
@@ -206,6 +237,7 @@ public class EncoderActivity extends AppCompatActivity {
         binding.btnToggleEncode.setText("🎬 Bắt Đầu Mã Hóa");
         binding.btnSelectEncodeDestination.setEnabled(true);
         binding.tvYuvSourceName.setEnabled(true);
+        binding.spCodecType.setEnabled(true);
         binding.cvEncodeProgress.setVisibility(View.GONE);
         Toast.makeText(this, "Đã dừng mã hóa!", Toast.LENGTH_SHORT).show();
     }
@@ -232,14 +264,17 @@ public class EncoderActivity extends AppCompatActivity {
             inStream = new BufferedInputStream(new FileInputStream(sourceFile));
             outStream = new FileOutputStream(outputBitstreamPath);
 
+            // Select MIME Type based on selected codec
+            String mimeType = codecType.equals("HEVC") ? MediaFormat.MIMETYPE_VIDEO_HEVC : MediaFormat.MIMETYPE_VIDEO_AVC;
+
             // Configure MediaCodec encoder
-            MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
+            MediaFormat format = MediaFormat.createVideoFormat(mimeType, width, height);
             format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar); // NV12
             format.setInteger(MediaFormat.KEY_BIT_RATE, bitrateBps);
             format.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
             format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, gopSeconds);
 
-            encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
+            encoder = MediaCodec.createEncoderByType(mimeType);
             encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             encoder.start();
 
@@ -302,14 +337,12 @@ public class EncoderActivity extends AppCompatActivity {
                                 outputBuffer.get(bytes);
                                 outStream.write(bytes);
                             } else {
-                                // Convert Annex B output buffer to AVCC length-prefixed format
-                                writeAsAvcc(outputBuffer, info, outStream);
+                                // Convert Annex B output buffer to AVCC / HVCC length-prefixed format
+                                writeAsLengthPrefixed(outputBuffer, info, outStream);
                             }
                         }
                     }
                     encoder.releaseOutputBuffer(outputBufferId, false);
-                } else if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                    // No container muxing needed for raw bitstream files
                 }
             }
 
@@ -320,6 +353,7 @@ public class EncoderActivity extends AppCompatActivity {
                 binding.btnToggleEncode.setText("🎬 Bắt Đầu Mã Hóa");
                 binding.btnSelectEncodeDestination.setEnabled(true);
                 binding.tvYuvSourceName.setEnabled(true);
+                binding.spCodecType.setEnabled(true);
                 binding.cvEncodeProgress.setVisibility(View.GONE);
             });
 
@@ -331,6 +365,7 @@ public class EncoderActivity extends AppCompatActivity {
                 binding.btnToggleEncode.setText("🎬 Bắt Đầu Mã Hóa");
                 binding.btnSelectEncodeDestination.setEnabled(true);
                 binding.tvYuvSourceName.setEnabled(true);
+                binding.spCodecType.setEnabled(true);
                 binding.cvEncodeProgress.setVisibility(View.GONE);
             });
         } finally {
@@ -358,7 +393,6 @@ public class EncoderActivity extends AppCompatActivity {
         int ySize = width * height;
         int uvSize = ySize / 2;
 
-        // Copy Y plane directly (identical in NV12, I420, and NV21)
         System.arraycopy(src, 0, dest, 0, ySize);
 
         if (inputFormat.equals("NV12")) {
@@ -378,7 +412,6 @@ public class EncoderActivity extends AppCompatActivity {
             int destUVStart = ySize;
             int uvPixels = ySize / 4;
 
-            // Swap V and U channels from NV21 to NV12
             for (int i = 0; i < uvPixels; i++) {
                 dest[destUVStart + i * 2] = src[srcUVStart + i * 2 + 1]; // U
                 dest[destUVStart + i * 2 + 1] = src[srcUVStart + i * 2];   // V
@@ -386,7 +419,7 @@ public class EncoderActivity extends AppCompatActivity {
         }
     }
 
-    private void writeAsAvcc(ByteBuffer buffer, MediaCodec.BufferInfo info, OutputStream out) throws IOException {
+    private void writeAsLengthPrefixed(ByteBuffer buffer, MediaCodec.BufferInfo info, OutputStream out) throws IOException {
         int offset = info.offset;
         int limit = info.offset + info.size;
 
@@ -402,7 +435,7 @@ public class EncoderActivity extends AppCompatActivity {
 
             int nalSize = nalEnd - nalStart;
             if (nalSize > 0) {
-                // Write 4-byte size length prefix in Big-Endian format
+                // Write 4-byte size length prefix in Big-Endian format (Used by AVCC and HVCC)
                 byte[] lenPrefix = new byte[4];
                 lenPrefix[0] = (byte) ((nalSize >> 24) & 0xFF);
                 lenPrefix[1] = (byte) ((nalSize >> 16) & 0xFF);

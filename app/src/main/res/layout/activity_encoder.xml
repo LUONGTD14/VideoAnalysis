@@ -127,11 +127,32 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="THÔNG SỐ BỘ MÃ HÓA AVC"
+                android:text="THÔNG SỐ BỘ MÃ HÓA AVC/HEVC"
                 android:textColor="#40A02B"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bộ mã hóa (Codec): "
+                    android:textColor="#1E1E2E"
+                    android:textSize="13sp" />
+
+                <Spinner
+                    android:id="@+id/sp_codec_type"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+            </LinearLayout>
 
             <EditText
                 android:id="@+id/et_bitrate_kbps"
@@ -172,7 +193,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Định dạng AVC đầu ra: "
+                    android:text="Định dạng Bitstream đầu ra: "
                     android:textColor="#1E1E2E"
                     android:textSize="13sp" />
 
