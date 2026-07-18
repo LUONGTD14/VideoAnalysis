@@ -143,8 +143,9 @@ public class MainActivity extends AppCompatActivity {
         if (selectedFilePath.isEmpty()) return;
         
         if (selectedFilePath.endsWith(".264") || selectedFilePath.endsWith(".h264") ||
-                selectedFilePath.endsWith(".265") || selectedFilePath.endsWith(".h265")) {
-            detectedFormat = "Raw Video Bitstream (" + (selectedFilePath.endsWith(".265") || selectedFilePath.endsWith(".h265") ? "H.265" : "H.264") + ")";
+                selectedFilePath.endsWith(".265") || selectedFilePath.endsWith(".h265") ||
+                selectedFilePath.endsWith(".hevc")) {
+            detectedFormat = "Raw Video Bitstream (" + (selectedFilePath.endsWith(".265") || selectedFilePath.endsWith(".h265") || selectedFilePath.endsWith(".hevc") ? "H.265" : "H.264") + ")";
             binding.fileTypeLbl.setText("Định dạng: " + detectedFormat);
             binding.titleLbl.setText("Aura Media Box Viewer");
 

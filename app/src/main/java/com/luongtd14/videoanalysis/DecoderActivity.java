@@ -181,11 +181,12 @@ public class DecoderActivity extends AppCompatActivity {
 
     private void extractVideoMetadata() {
         if (sourceFilePath.endsWith(".264") || sourceFilePath.endsWith(".h264") ||
-                sourceFilePath.endsWith(".265") || sourceFilePath.endsWith(".h265")) {
+                sourceFilePath.endsWith(".265") || sourceFilePath.endsWith(".h265") ||
+                sourceFilePath.endsWith(".hevc")) {
             isRawBitstream = true;
             videoWidth = 0;
             videoHeight = 0;
-            videoMime = (sourceFilePath.endsWith(".265") || sourceFilePath.endsWith(".h265"))
+            videoMime = (sourceFilePath.endsWith(".265") || sourceFilePath.endsWith(".h265") || sourceFilePath.endsWith(".hevc"))
                     ? MediaFormat.MIMETYPE_VIDEO_HEVC : MediaFormat.MIMETYPE_VIDEO_AVC;
             videoFps = 30;
             durationUs = 0;
