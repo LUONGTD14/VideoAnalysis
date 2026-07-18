@@ -91,6 +91,16 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, YuvPlayerActivity.class);
             startActivity(intent);
         });
+        binding.btnYuvEncoder.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EncoderActivity.class);
+            if (selectedFileUri != null) {
+                String path = PathUtils.getPathFromUri(this, selectedFileUri);
+                if (path != null && path.endsWith(".yuv")) {
+                    intent.putExtra("file_path", path);
+                }
+            }
+            startActivity(intent);
+        });
     }
 
     private void displayFileInfo() {

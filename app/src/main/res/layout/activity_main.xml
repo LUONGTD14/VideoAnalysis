@@ -18,132 +18,158 @@
         android:textSize="24sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="30dp" />
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="20dp" />
 
-    <!-- File info card -->
-    <androidx.cardview.widget.CardView
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="3dp"
-        app:cardBackgroundColor="#FFFFFF">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="vertical">
+
+            <!-- File info card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="THÔNG TIN TỆP TIN"
+                        android:textColor="#8839EF"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/file_name_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Tên file: Chưa chọn tệp tin"
+                        android:textColor="#1E1E2E"
+                        android:textSize="15sp"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/file_size_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Kích thước: 0 Bytes"
+                        android:textColor="#1E1E2E"
+                        android:textSize="15sp"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/file_type_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Định dạng: N/A"
+                        android:textColor="#1E1E2E"
+                        android:textSize="15sp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/btn_select_file"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📁 Mở tệp tin Media (MP4/MOV/MKV/WebM)"
+                android:backgroundTint="#1E66F5"
+                android:textColor="#FFFFFF"
+                android:padding="12dp"
+                android:layout_marginBottom="24dp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="THÔNG TIN TỆP TIN"
-                android:textColor="#8839EF"
+                android:text="CÁC CHỨC NĂNG"
+                android:textColor="#4C4F69"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="12dp" />
 
-            <TextView
-                android:id="@+id/file_name_lbl"
+            <Button
+                android:id="@+id/btn_tree_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Tên file: Chưa chọn tệp tin"
+                android:text="🔍 Xem cấu trúc Box Tree"
+                android:backgroundTint="#FFFFFF"
                 android:textColor="#1E1E2E"
-                android:textSize="15sp"
-                android:layout_marginBottom="4dp" />
+                android:padding="12dp"
+                android:layout_marginBottom="12dp"
+                android:enabled="false" />
 
-            <TextView
-                android:id="@+id/file_size_lbl"
+            <Button
+                android:id="@+id/btn_metadata_editor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Kích thước: 0 Bytes"
+                android:text="✏️ Sửa đổi Metadata"
+                android:backgroundTint="#FFFFFF"
                 android:textColor="#1E1E2E"
-                android:textSize="15sp"
-                android:layout_marginBottom="4dp" />
+                android:padding="12dp"
+                android:layout_marginBottom="12dp"
+                android:enabled="false" />
 
-            <TextView
-                android:id="@+id/file_type_lbl"
+            <Button
+                android:id="@+id/btn_hex_editor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Định dạng: N/A"
+                android:text="💾 Chỉnh sửa nhị phân Hex"
+                android:backgroundTint="#FFFFFF"
                 android:textColor="#1E1E2E"
-                android:textSize="15sp" />
+                android:padding="12dp"
+                android:layout_marginBottom="12dp"
+                android:enabled="false" />
+
+            <Button
+                android:id="@+id/btn_yuv_decoder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🎬 Giải mã ra YUV File"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="#1E1E2E"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp"
+                android:enabled="false" />
+
+            <Button
+                android:id="@+id/btn_yuv_encoder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📥 Mã hóa YUV sang H.264"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="#1E1E2E"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btn_yuv_player"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📺 Trình phát YUV Player"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="#1E1E2E"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp" />
 
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <Button
-        android:id="@+id/btn_select_file"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="📁 Mở tệp tin Media (MP4/MOV/MKV/WebM)"
-        android:backgroundTint="#1E66F5"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:layout_marginBottom="40dp" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="CÁC CHỨC NĂNG"
-        android:textColor="#4C4F69"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="12dp" />
-
-    <Button
-        android:id="@+id/btn_tree_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="🔍 Xem cấu trúc Box Tree"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="#1E1E2E"
-        android:padding="12dp"
-        android:layout_marginBottom="12dp"
-        android:enabled="false" />
-
-    <Button
-        android:id="@+id/btn_metadata_editor"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="✏️ Sửa đổi Metadata"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="#1E1E2E"
-        android:padding="12dp"
-        android:layout_marginBottom="12dp"
-        android:enabled="false" />
-
-    <Button
-        android:id="@+id/btn_hex_editor"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="💾 Chỉnh sửa nhị phân Hex"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="#1E1E2E"
-        android:padding="12dp"
-        android:layout_marginBottom="12dp"
-        android:enabled="false" />
-
-    <Button
-        android:id="@+id/btn_yuv_decoder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="🎬 Giải mã ra YUV File"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="#1E1E2E"
-        android:padding="12dp"
-        android:layout_marginBottom="12dp"
-        android:enabled="false" />
-
-    <Button
-        android:id="@+id/btn_yuv_player"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="📺 Trình phát YUV Player"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="#1E1E2E"
-        android:padding="12dp" />
+    </ScrollView>
 
 </LinearLayout>

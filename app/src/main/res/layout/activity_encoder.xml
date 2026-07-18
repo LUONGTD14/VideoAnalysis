@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#F4F5F6"
+    tools:context=".EncoderActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mã hóa YUV sang AVC (H.264)"
+        android:textColor="#1E66F5"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Source YUV Config Card -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="3dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="CẤU HÌNH TỆP YUV NGUỒN"
+                android:textColor="#8839EF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:id="@+id/tv_yuv_source_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tên tệp: Chưa chọn"
+                android:textColor="#1E1E2E"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <EditText
+                    android:id="@+id/et_encode_width"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Rộng (Width)"
+                    android:inputType="number"
+                    android:text="1280"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" x "
+                    android:textColor="#1E1E2E" />
+
+                <EditText
+                    android:id="@+id/et_encode_height"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Cao (Height)"
+                    android:inputType="number"
+                    android:text="720"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hệ màu YUV đầu vào: "
+                    android:textColor="#1E1E2E"
+                    android:textSize="13sp" />
+
+                <Spinner
+                    android:id="@+id/sp_input_yuv_format"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Encoder Configuration Card -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="3dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="THÔNG SỐ BỘ MÃ HÓA AVC"
+                android:textColor="#40A02B"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <EditText
+                android:id="@+id/et_bitrate_kbps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Bitrate (Kbps) e.g., 2000"
+                android:inputType="number"
+                android:text="2000"
+                android:textSize="13sp"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_fps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tốc độ khung hình (FPS) e.g., 30"
+                android:inputType="number"
+                android:text="30"
+                android:textSize="13sp"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_gop_seconds"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Chu kỳ khung khóa GOP (Giây) e.g., 2"
+                android:inputType="number"
+                android:text="2"
+                android:textSize="13sp"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Định dạng AVC đầu ra: "
+                    android:textColor="#1E1E2E"
+                    android:textSize="13sp" />
+
+                <Spinner
+                    android:id="@+id/sp_output_bitstream_format"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Progress Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_encode_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:visibility="gone"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="3dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/tv_encode_progress_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Đang mã hóa: Khung hình 0"
+                    android:textColor="#1E1E2E"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_encode_progress_percent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textColor="#1E66F5"
+                    android:textStyle="bold"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <ProgressBar
+                android:id="@+id/pb_encode"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="0" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <Button
+        android:id="@+id/btn_select_encode_destination"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📁 Chọn nơi lưu bitstream"
+        android:backgroundTint="#8839EF"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tv_encode_destination_path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nơi lưu: Chưa chọn"
+        android:textColor="#4C4F69"
+        android:textSize="13sp"
+        android:layout_marginBottom="20dp"
+        android:gravity="center_horizontal" />
+
+    <Button
+        android:id="@+id/btn_toggle_encode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🎬 Bắt Đầu Mã Hóa"
+        android:backgroundTint="#1E66F5"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:enabled="false" />
+
+</LinearLayout>

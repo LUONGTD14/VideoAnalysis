@@ -37,6 +37,9 @@
         <activity
             android:name=".YuvPlayerActivity"
             android:exported="false" />
+        <activity
+            android:name=".EncoderActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
