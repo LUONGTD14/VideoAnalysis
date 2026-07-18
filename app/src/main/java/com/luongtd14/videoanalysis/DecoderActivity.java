@@ -170,8 +170,16 @@ public class DecoderActivity extends AppCompatActivity {
 
     private void setupInputBitstreamSpinner() {
         List<String> formats = new ArrayList<>();
-        formats.add("Annex B (Start Codes 0x00000001)");
-        formats.add("AVCC / HVCC (Length Prefixed)");
+        if (videoMime.equals(MediaFormat.MIMETYPE_VIDEO_AV1)) {
+            formats.add("Low Overhead OBU Stream");
+            formats.add("AV1 Annex B (LEB128 Size Prefixed)");
+        } else if (videoMime.equals(MediaFormat.MIMETYPE_VIDEO_VP9)) {
+            formats.add("IVF Container (DKIF Header)");
+            formats.add("Raw Frame Packets");
+        } else {
+            formats.add("Annex B (Start Codes 0x00000001)");
+            formats.add("AVCC / HVCC (Length Prefixed)");
+        }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, formats);
@@ -182,12 +190,21 @@ public class DecoderActivity extends AppCompatActivity {
     private void extractVideoMetadata() {
         if (sourceFilePath.endsWith(".264") || sourceFilePath.endsWith(".h264") ||
                 sourceFilePath.endsWith(".265") || sourceFilePath.endsWith(".h265") ||
-                sourceFilePath.endsWith(".hevc")) {
+                sourceFilePath.endsWith(".hevc") || sourceFilePath.endsWith(".obu") ||
+                sourceFilePath.endsWith(".av1") || sourceFilePath.endsWith(".ivf") ||
+                sourceFilePath.endsWith(".vp9")) {
             isRawBitstream = true;
             videoWidth = 0;
             videoHeight = 0;
-            videoMime = (sourceFilePath.endsWith(".265") || sourceFilePath.endsWith(".h265") || sourceFilePath.endsWith(".hevc"))
-                    ? MediaFormat.MIMETYPE_VIDEO_HEVC : MediaFormat.MIMETYPE_VIDEO_AVC;
+            if (sourceFilePath.endsWith(".obu") || sourceFilePath.endsWith(".av1")) {
+                videoMime = MediaFormat.MIMETYPE_VIDEO_AV1;
+            } else if (sourceFilePath.endsWith(".ivf") || sourceFilePath.endsWith(".vp9")) {
+                videoMime = MediaFormat.MIMETYPE_VIDEO_VP9;
+            } else if (sourceFilePath.endsWith(".265") || sourceFilePath.endsWith(".h265") || sourceFilePath.endsWith(".hevc")) {
+                videoMime = MediaFormat.MIMETYPE_VIDEO_HEVC;
+            } else {
+                videoMime = MediaFormat.MIMETYPE_VIDEO_AVC;
+            }
             videoFps = 30;
             durationUs = 0;
 
@@ -197,6 +214,7 @@ public class DecoderActivity extends AppCompatActivity {
             binding.tvVideoFps.setText("FPS: 30 (Mặc định)");
             binding.tvVideoDuration.setText("Thời lượng: N/A (Raw Bitstream)");
             binding.cvInputBitstreamFormat.setVisibility(View.VISIBLE);
+            setupInputBitstreamSpinner();
             return;
         }
 
@@ -273,7 +291,13 @@ public class DecoderActivity extends AppCompatActivity {
         else if (position == 2) selectedFormat = "NV21";
 
         if (isRawBitstream) {
-            inputBitstreamFormat = (binding.spInputBitstreamFormat.getSelectedItemPosition() == 0) ? "Annex B" : "AVCC";
+            if (videoMime.equals(MediaFormat.MIMETYPE_VIDEO_AV1)) {
+                inputBitstreamFormat = (binding.spInputBitstreamFormat.getSelectedItemPosition() == 0) ? "OBU Stream" : "AV1 Annex B";
+            } else if (videoMime.equals(MediaFormat.MIMETYPE_VIDEO_VP9)) {
+                inputBitstreamFormat = (binding.spInputBitstreamFormat.getSelectedItemPosition() == 0) ? "IVF Container" : "Raw Packets";
+            } else {
+                inputBitstreamFormat = (binding.spInputBitstreamFormat.getSelectedItemPosition() == 0) ? "Annex B" : "AVCC";
+            }
         }
 
         final String finalFormat = selectedFormat;
@@ -325,6 +349,7 @@ public class DecoderActivity extends AppCompatActivity {
 
             byte[] chunk = new byte[65536]; // 64KB chunks
             int frameIndex = 0;
+            boolean hasReadIvfFileHeader = false;
 
             while (!isOutputEOS && !cancelRequested) {
                 if (!isInputEOS) {
@@ -333,52 +358,166 @@ public class DecoderActivity extends AppCompatActivity {
                         ByteBuffer inputBuffer = decoder.getInputBuffer(inputBufferId);
                         if (inputBuffer != null) {
                             if (isRawBitstream) {
-                                if (inputBitstreamFormat.equals("AVCC")) {
-                                    byte[] sizeBytes = new byte[4];
-                                    int readSize = fis.read(sizeBytes);
-                                    if (readSize < 4) {
-                                        decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-                                        isInputEOS = true;
-                                    } else {
-                                        int nalLen = ((sizeBytes[0] & 0xFF) << 24) | ((sizeBytes[1] & 0xFF) << 16) | ((sizeBytes[2] & 0xFF) << 8) | (sizeBytes[3] & 0xFF);
-                                        if (nalLen <= 0 || nalLen > 10 * 1024 * 1024) {
-                                            throw new IOException("Độ dài NAL unit không hợp lệ: " + nalLen);
-                                        }
-                                        byte[] nalData = new byte[nalLen];
-                                        int readPayload = 0;
-                                        while (readPayload < nalLen) {
-                                            int r = fis.read(nalData, readPayload, nalLen - readPayload);
-                                            if (r < 0) {
-                                                break;
+                                if (videoMime.equals(MediaFormat.MIMETYPE_VIDEO_AV1)) {
+                                    if (inputBitstreamFormat.equals("AV1 Annex B")) {
+                                        int len = readLeb128(fis);
+                                        if (len < 0) {
+                                            decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                                            isInputEOS = true;
+                                        } else {
+                                            if (len <= 0 || len > 10 * 1024 * 1024) {
+                                                throw new IOException("Độ dài AV1 unit không hợp lệ: " + len);
                                             }
-                                            readPayload += r;
+                                            byte[] unitData = new byte[len];
+                                            int readPayload = 0;
+                                            while (readPayload < len) {
+                                                int r = fis.read(unitData, readPayload, len - readPayload);
+                                                if (r < 0) {
+                                                    break;
+                                                }
+                                                readPayload += r;
+                                            }
+                                            if (readPayload < len) {
+                                                decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                                                isInputEOS = true;
+                                            } else {
+                                                inputBuffer.clear();
+                                                if (len > inputBuffer.remaining()) {
+                                                    throw new IOException("Độ dài AV1 unit vượt quá dung lượng buffer đầu vào: " + len);
+                                                }
+                                                inputBuffer.put(unitData, 0, len);
+                                                long presentationTimeUs = (long) frameIndex * 1000000 / videoFps;
+                                                decoder.queueInputBuffer(inputBufferId, 0, len, presentationTimeUs, 0);
+                                                frameIndex++;
+                                            }
                                         }
-                                        if (readPayload < nalLen) {
+                                    } else {
+                                        int read = fis.read(chunk);
+                                        if (read < 0) {
                                             decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                                             isInputEOS = true;
                                         } else {
                                             inputBuffer.clear();
-                                            if (nalLen + 4 > inputBuffer.remaining()) {
-                                                throw new IOException("Độ dài NAL unit vượt quá dung lượng buffer đầu vào: " + nalLen);
-                                            }
-                                            inputBuffer.put(new byte[]{0, 0, 0, 1});
-                                            inputBuffer.put(nalData, 0, nalLen);
+                                            inputBuffer.put(chunk, 0, read);
                                             long presentationTimeUs = (long) frameIndex * 1000000 / videoFps;
-                                            decoder.queueInputBuffer(inputBufferId, 0, nalLen + 4, presentationTimeUs, 0);
+                                            decoder.queueInputBuffer(inputBufferId, 0, read, presentationTimeUs, 0);
+                                            frameIndex++;
+                                        }
+                                    }
+                                } else if (videoMime.equals(MediaFormat.MIMETYPE_VIDEO_VP9)) {
+                                    if (inputBitstreamFormat.equals("IVF Container")) {
+                                        if (!hasReadIvfFileHeader) {
+                                            byte[] fileHeader = new byte[32];
+                                            int readHeader = fis.read(fileHeader);
+                                            if (readHeader < 32) {
+                                                decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                                                isInputEOS = true;
+                                                continue;
+                                            }
+                                            if (fileHeader[0] != 'D' || fileHeader[1] != 'K' || fileHeader[2] != 'I' || fileHeader[3] != 'F') {
+                                                throw new IOException("Tệp IVF không đúng chữ ký DKIF!");
+                                            }
+                                            hasReadIvfFileHeader = true;
+                                        }
+
+                                        byte[] frameHeader = new byte[12];
+                                        int readFrameHeader = fis.read(frameHeader);
+                                        if (readFrameHeader < 12) {
+                                            decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                                            isInputEOS = true;
+                                        } else {
+                                            int frameSize = (frameHeader[0] & 0xFF) | ((frameHeader[1] & 0xFF) << 8) | ((frameHeader[2] & 0xFF) << 16) | ((frameHeader[3] & 0xFF) << 24);
+                                            long pts = (frameHeader[4] & 0xFFL) | ((frameHeader[5] & 0xFFL) << 8) | ((frameHeader[6] & 0xFFL) << 16) | ((frameHeader[7] & 0xFFL) << 24) |
+                                                       ((frameHeader[8] & 0xFFL) << 32) | ((frameHeader[9] & 0xFFL) << 40) | ((frameHeader[10] & 0xFFL) << 48) | ((frameHeader[11] & 0xFFL) << 56);
+                                            
+                                            if (frameSize <= 0 || frameSize > 10 * 1024 * 1024) {
+                                                throw new IOException("Độ dài khung hình VP9 không hợp lệ: " + frameSize);
+                                            }
+                                            
+                                            byte[] vp9Payload = new byte[frameSize];
+                                            int readPayload = 0;
+                                            while (readPayload < frameSize) {
+                                                int r = fis.read(vp9Payload, readPayload, frameSize - readPayload);
+                                                if (r < 0) {
+                                                    break;
+                                                }
+                                                readPayload += r;
+                                            }
+                                            
+                                            if (readPayload < frameSize) {
+                                                decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                                                isInputEOS = true;
+                                            } else {
+                                                inputBuffer.clear();
+                                                if (frameSize > inputBuffer.remaining()) {
+                                                    throw new IOException("Khung hình VP9 vượt quá dung lượng buffer đầu vào: " + frameSize);
+                                                }
+                                                inputBuffer.put(vp9Payload, 0, frameSize);
+                                                decoder.queueInputBuffer(inputBufferId, 0, frameSize, pts, 0);
+                                                frameIndex++;
+                                            }
+                                        }
+                                    } else {
+                                        int read = fis.read(chunk);
+                                        if (read < 0) {
+                                            decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                                            isInputEOS = true;
+                                        } else {
+                                            inputBuffer.clear();
+                                            inputBuffer.put(chunk, 0, read);
+                                            long presentationTimeUs = (long) frameIndex * 1000000 / videoFps;
+                                            decoder.queueInputBuffer(inputBufferId, 0, read, presentationTimeUs, 0);
                                             frameIndex++;
                                         }
                                     }
                                 } else {
-                                    int read = fis.read(chunk);
-                                    if (read < 0) {
-                                        decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-                                        isInputEOS = true;
+                                    if (inputBitstreamFormat.equals("AVCC")) {
+                                        byte[] sizeBytes = new byte[4];
+                                        int readSize = fis.read(sizeBytes);
+                                        if (readSize < 4) {
+                                            decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                                            isInputEOS = true;
+                                        } else {
+                                            int nalLen = ((sizeBytes[0] & 0xFF) << 24) | ((sizeBytes[1] & 0xFF) << 16) | ((sizeBytes[2] & 0xFF) << 8) | (sizeBytes[3] & 0xFF);
+                                            if (nalLen <= 0 || nalLen > 10 * 1024 * 1024) {
+                                                throw new IOException("Độ dài NAL unit không hợp lệ: " + nalLen);
+                                            }
+                                            byte[] nalData = new byte[nalLen];
+                                            int readPayload = 0;
+                                            while (readPayload < nalLen) {
+                                                int r = fis.read(nalData, readPayload, nalLen - readPayload);
+                                                if (r < 0) {
+                                                    break;
+                                                }
+                                                readPayload += r;
+                                            }
+                                            if (readPayload < nalLen) {
+                                                decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                                                isInputEOS = true;
+                                            } else {
+                                                inputBuffer.clear();
+                                                if (nalLen + 4 > inputBuffer.remaining()) {
+                                                    throw new IOException("Độ dài NAL unit vượt quá dung lượng buffer đầu vào: " + nalLen);
+                                                }
+                                                inputBuffer.put(new byte[]{0, 0, 0, 1});
+                                                inputBuffer.put(nalData, 0, nalLen);
+                                                long presentationTimeUs = (long) frameIndex * 1000000 / videoFps;
+                                                decoder.queueInputBuffer(inputBufferId, 0, nalLen + 4, presentationTimeUs, 0);
+                                                frameIndex++;
+                                            }
+                                        }
                                     } else {
-                                        inputBuffer.clear();
-                                        inputBuffer.put(chunk, 0, read);
-                                        long presentationTimeUs = (long) frameIndex * 1000000 / videoFps;
-                                        decoder.queueInputBuffer(inputBufferId, 0, read, presentationTimeUs, 0);
-                                        frameIndex++;
+                                        int read = fis.read(chunk);
+                                        if (read < 0) {
+                                            decoder.queueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                                            isInputEOS = true;
+                                        } else {
+                                            inputBuffer.clear();
+                                            inputBuffer.put(chunk, 0, read);
+                                            long presentationTimeUs = (long) frameIndex * 1000000 / videoFps;
+                                            decoder.queueInputBuffer(inputBufferId, 0, read, presentationTimeUs, 0);
+                                            frameIndex++;
+                                        }
                                     }
                                 }
                             } else {
@@ -477,6 +616,27 @@ public class DecoderActivity extends AppCompatActivity {
                 binding.cvProgress.setVisibility(View.GONE);
             });
         }
+    }
+
+    private int readLeb128(java.io.InputStream in) throws IOException {
+        int result = 0;
+        int shift = 0;
+        while (true) {
+            int b = in.read();
+            if (b < 0) {
+                if (shift == 0) return -1; // EOS
+                throw new IOException("Incomplete LEB128 integer");
+            }
+            result |= (b & 0x7F) << shift;
+            if ((b & 0x80) == 0) {
+                break;
+            }
+            shift += 7;
+            if (shift >= 32) {
+                throw new IOException("LEB128 integer overflow");
+            }
+        }
+        return result;
     }
 
     private void writeYuvFrame(Image image, OutputStream out, String format) throws IOException {
