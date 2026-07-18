@@ -8,7 +8,7 @@
     android:background="#1E1E2E"
     tools:context=".YuvPlayerActivity">
 
-    <!-- Config Panel -->
+    <!-- Config Panel for 2 Videos -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_config"
         android:layout_width="match_parent"
@@ -24,101 +24,219 @@
             android:orientation="vertical"
             android:padding="12dp">
 
+            <!-- Clickable Header to Collapse/Expand -->
             <RelativeLayout
+                android:id="@+id/rl_config_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp">
+                android:background="?android:attr/selectableItemBackground"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp">
 
                 <TextView
                     android:id="@+id/tv_player_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Trình phát YUV thô (YUV Player)"
+                    android:text="Trình so sánh video YUV (YUV Dual)"
                     android:textColor="#1E66F5"
                     android:textStyle="bold"
                     android:textSize="14sp"
                     android:layout_centerVertical="true" />
 
-                <Button
-                    android:id="@+id/btn_select_yuv"
+                <TextView
+                    android:id="@+id/tv_collapse_toggle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Chọn YUV"
+                    android:text="[Thu gọn]"
+                    android:textColor="#8839EF"
                     android:textSize="12sp"
-                    android:backgroundTint="#8839EF"
-                    android:textColor="#FFFFFF"
-                    android:layout_alignParentEnd="true" />
+                    android:textStyle="bold"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true" />
             </RelativeLayout>
 
-            <!-- Video configurations input row -->
+            <!-- Collapsible Settings Container -->
             <LinearLayout
+                android:id="@+id/ll_settings_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"
+                android:visibility="visible">
 
-                <EditText
-                    android:id="@+id/et_yuv_width"
-                    android:layout_width="0dp"
+                <!-- Video 1 Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="Chiều rộng (W)"
-                    android:inputType="number"
-                    android:text="1280"
-                    android:textSize="13sp" />
+                    android:orientation="vertical"
+                    android:padding="6dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="#F4F5F6">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" x "
-                    android:textColor="#1E1E2E" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:id="@+id/tv_title_v1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="VIDEO 1 (Chính)"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="#4C4F69"
+                            android:layout_centerVertical="true" />
+                        <Button
+                            android:id="@+id/btn_select_yuv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chọn YUV 1"
+                            android:textSize="11sp"
+                            android:backgroundTint="#8839EF"
+                            android:textColor="#FFFFFF"
+                            android:layout_alignParentEnd="true" />
+                    </RelativeLayout>
 
-                <EditText
-                    android:id="@+id/et_yuv_height"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="Chiều cao (H)"
-                    android:inputType="number"
-                    android:text="720"
-                    android:textSize="13sp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <EditText
+                            android:id="@+id/et_yuv_width"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="W"
+                            android:inputType="number"
+                            android:text="1280"
+                            android:textSize="12sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="x" />
+                        <EditText
+                            android:id="@+id/et_yuv_height"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="H"
+                            android:inputType="number"
+                            android:text="720"
+                            android:textSize="12sp" />
+                        <Spinner
+                            android:id="@+id/sp_yuv_format"
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp" />
+                    </LinearLayout>
+                </LinearLayout>
 
-                <Spinner
-                    android:id="@+id/sp_yuv_format"
-                    android:layout_width="120dp"
+                <!-- Video 2 Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp" />
+                    android:orientation="vertical"
+                    android:padding="6dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="#F4F5F6">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:id="@+id/tv_title_v2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="VIDEO 2 (So sánh - Tùy chọn)"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="#4C4F69"
+                            android:layout_centerVertical="true" />
+                        <Button
+                            android:id="@+id/btn_select_yuv2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chọn YUV 2"
+                            android:textSize="11sp"
+                            android:backgroundTint="#8839EF"
+                            android:textColor="#FFFFFF"
+                            android:layout_alignParentEnd="true" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <EditText
+                            android:id="@+id/et_yuv_width2"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="W"
+                            android:inputType="number"
+                            android:text="1280"
+                            android:textSize="12sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="x" />
+                        <EditText
+                            android:id="@+id/et_yuv_height2"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="H"
+                            android:inputType="number"
+                            android:text="720"
+                            android:textSize="12sp" />
+                        <Spinner
+                            android:id="@+id/sp_yuv_format2"
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_load_yuv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📂 Nạp cấu hình &amp; Phát Video"
+                    android:backgroundTint="#40A02B"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:padding="8dp" />
             </LinearLayout>
-
-            <Button
-                android:id="@+id/btn_load_yuv"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="📂 Nạp &amp; Khởi chạy YUV"
-                android:backgroundTint="#40A02B"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:padding="8dp" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Player rendering area -->
-    <RelativeLayout
+    <!-- Rendering viewports (Vertical top/bottom split) -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:orientation="vertical"
         android:background="#000000"
         android:gravity="center">
 
         <SurfaceView
             android:id="@+id/sv_yuv_render"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </RelativeLayout>
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-    <!-- Controller Bar -->
+        <SurfaceView
+            android:id="@+id/sv_yuv_render2"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="gone"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <!-- Shared Controller Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -157,7 +275,7 @@
             android:progress="0"
             android:layout_marginBottom="12dp" />
 
-        <!-- Control buttons row -->
+        <!-- Playback controls -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
